@@ -9,6 +9,8 @@ import com.family.dawa.domain.model.*
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 
+import com.family.dawa.domain.repository.IDoseRepository
+
 class DoseRepository(
     private val medicationRepository: MedicationRepository,
     private val doseEventDao: DoseEventDao,
@@ -16,12 +18,12 @@ class DoseRepository(
     private val settingsRepository: SettingsRepository,
     private val timeProvider: TimeProvider,
     val doseLedger: DoseLedger
-) {
+) : IDoseRepository {
 
     /**
      * Observes today's caregiver HomeState reactively whenever schedules, events, or settings change.
      */
-    fun observeHomeState(): Flow<HomeState> {
+    override fun observeHomeState(): Flow<HomeState> {
         return combine(
             medicationRepository.getAllActiveMedicationsFlow(),
             contactRepository.primaryContactFlow,
@@ -75,10 +77,7 @@ class DoseRepository(
         }
     }
 
-    /**
-     * Observes the full day timeline (used in Admin dashboard).
-     */
-    fun observeTodayTimeline(): Flow<List<SlotWithStatus>> {
+    override fun observeTodayTimeline(): Flow<List<SlotWithStatus>> {
         return settingsRepository.settingsFlow.flatMapLatest { settings ->
             val now = timeProvider.nowZoned()
             val today = now.toLocalDate()
@@ -98,26 +97,30 @@ class DoseRepository(
         }
     }
 
-    suspend fun confirmSlot(slot: Slot) {
+    override suspend fun confirmSlot(slot: Slot) {
         doseLedger.confirmSlot(slot, timeProvider.nowZoned(), RecordedBy.CAREGIVER)
     }
 
-    suspend fun acknowledgeMissed(slot: Slot) {
+    override suspend fun acknowledgeMissed(slot: Slot) {
         doseLedger.acknowledgeMissed(slot, timeProvider.nowZoned())
     }
 
-    suspend fun reconcile() {
+    override suspend fun reconcile() {
         val settings = settingsRepository.getSettings()
         doseLedger.reconcile(timeProvider.nowZoned(), settings.graceMinutes)
     }
 
-    suspend fun resetTodayEvents() {
+    override suspend fun resetTodayEvents() {
         doseLedger.resetTodayEvents(timeProvider.today())
     }
 
-    fun getEventsBetween(startDate: LocalDate, endDate: LocalDate): Flow<List<DoseEvent>> {
+    override fun getEventsBetween(startDate: LocalDate, endDate: LocalDate): Flow<List<DoseEvent>> {
         return doseEventDao.getEventsBetweenFlow(startDate, endDate).map { list ->
             list.map { it.toDomain() }
         }
+    }
+
+    override suspend fun updateEventStatus(eventId: Long, newStatus: EventStatus) {
+        doseLedger.updateEventStatus(eventId, newStatus, timeProvider.nowZoned())
     }
 }

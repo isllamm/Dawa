@@ -11,26 +11,12 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 
+import com.family.dawa.domain.model.AppSettings
+import com.family.dawa.domain.repository.ISettingsRepository
+
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "dawa_settings")
 
-data class AppSettings(
-    val patientName: String = "جدو",
-    val caregiverName: String = "تيتا",
-    val graceMinutes: Int = 60,
-    val realertMinutes: Int = 5,
-    val voiceEnabled: Boolean = true,
-    val vibrationEnabled: Boolean = true,
-    val disclaimerAccepted: Boolean = false,
-    val demoSeeded: Boolean = false,
-    val debugTimeOffsetMs: Long = 0L,
-    val breakfastMinutes: Int = 480, // 8:00 AM
-    val lunchMinutes: Int = 840,     // 2:00 PM
-    val dinnerMinutes: Int = 1200,   // 8:00 PM
-    val sleepMinutes: Int = 1350,    // 10:30 PM
-    val hasPin: Boolean = false
-)
-
-class SettingsRepository(private val context: Context) {
+class SettingsRepository(private val context: Context) : ISettingsRepository {
 
     private object Keys {
         val PATIENT_NAME = stringPreferencesKey("patient_name")
@@ -50,7 +36,7 @@ class SettingsRepository(private val context: Context) {
         val PIN_SALT = stringPreferencesKey("pin_salt")
     }
 
-    val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
+    override val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
         AppSettings(
             patientName = prefs[Keys.PATIENT_NAME] ?: "جدو",
             caregiverName = prefs[Keys.CAREGIVER_NAME] ?: "تيتا",
@@ -69,21 +55,21 @@ class SettingsRepository(private val context: Context) {
         )
     }
 
-    suspend fun getSettings(): AppSettings = settingsFlow.first()
+    override suspend fun getSettings(): AppSettings = settingsFlow.first()
 
-    suspend fun setDisclaimerAccepted(accepted: Boolean) {
+    override suspend fun setDisclaimerAccepted(accepted: Boolean) {
         context.dataStore.edit { it[Keys.DISCLAIMER_ACCEPTED] = accepted }
     }
 
-    suspend fun setDemoSeeded(seeded: Boolean) {
+    override suspend fun setDemoSeeded(seeded: Boolean) {
         context.dataStore.edit { it[Keys.DEMO_SEEDED] = seeded }
     }
 
-    suspend fun setDebugTimeOffset(offsetMs: Long) {
+    override suspend fun setDebugTimeOffset(offsetMs: Long) {
         context.dataStore.edit { it[Keys.DEBUG_TIME_OFFSET_MS] = offsetMs }
     }
 
-    suspend fun updateSettings(
+    override suspend fun updateSettings(
         patientName: String,
         caregiverName: String,
         graceMinutes: Int,
@@ -109,7 +95,7 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
-    suspend fun setAdminPin(pin: String) {
+    override suspend fun setAdminPin(pin: String) {
         val saltBytes = ByteArray(16)
         SecureRandom().nextBytes(saltBytes)
         val salt = Base64.getEncoder().encodeToString(saltBytes)
@@ -121,7 +107,7 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
-    suspend fun verifyAdminPin(pin: String): Boolean {
+    override suspend fun verifyAdminPin(pin: String): Boolean {
         val prefs = context.dataStore.data.first()
         val savedHash = prefs[Keys.PIN_HASH] ?: return (pin == "1234") // default demo PIN
         val savedSalt = prefs[Keys.PIN_SALT] ?: return (pin == "1234")

@@ -2,6 +2,7 @@ package com.family.dawa.data.repo
 
 import com.family.dawa.data.db.*
 import com.family.dawa.domain.model.*
+import com.family.dawa.domain.repository.IMedicationRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -9,18 +10,18 @@ class MedicationRepository(
     private val medicationDao: MedicationDao,
     private val photoDao: MedicationPhotoDao,
     private val scheduleDao: ScheduleDao
-) {
+) : IMedicationRepository {
 
-    fun getAllActiveMedicationsFlow(): Flow<List<Medication>> =
+    override fun getAllActiveMedicationsFlow(): Flow<List<Medication>> =
         medicationDao.getAllActiveFlow().map { list -> list.map { it.toDomain() } }
 
-    fun getAllMedicationsFlow(): Flow<List<Medication>> =
+    override fun getAllMedicationsFlow(): Flow<List<Medication>> =
         medicationDao.getAllFlow().map { list -> list.map { it.toDomain() } }
 
-    suspend fun getMedicationById(id: Long): Medication? =
+    override suspend fun getMedicationById(id: Long): Medication? =
         medicationDao.getById(id)?.toDomain()
 
-    suspend fun saveMedication(
+    override suspend fun saveMedication(
         medication: Medication,
         photos: List<MedicationPhoto>,
         schedules: List<Schedule>
@@ -50,35 +51,35 @@ class MedicationRepository(
         return medId
     }
 
-    suspend fun archiveMedication(id: Long) {
+    override suspend fun archiveMedication(id: Long) {
         medicationDao.archive(id)
     }
 
-    suspend fun deleteMedication(id: Long) {
+    override suspend fun deleteMedication(id: Long) {
         photoDao.deleteAllForMedication(id)
         scheduleDao.deleteAllForMedication(id)
         medicationDao.delete(id)
     }
 
-    fun getPhotosForMedicationFlow(medicationId: Long): Flow<List<MedicationPhoto>> =
+    override fun getPhotosForMedicationFlow(medicationId: Long): Flow<List<MedicationPhoto>> =
         photoDao.getPhotosForMedicationFlow(medicationId).map { list -> list.map { it.toDomain() } }
 
-    suspend fun getPhotosForMedicationSync(medicationId: Long): List<MedicationPhoto> =
+    override suspend fun getPhotosForMedicationSync(medicationId: Long): List<MedicationPhoto> =
         photoDao.getPhotosForMedicationSync(medicationId).map { it.toDomain() }
 
-    fun getSchedulesForMedicationFlow(medicationId: Long): Flow<List<Schedule>> =
+    override fun getSchedulesForMedicationFlow(medicationId: Long): Flow<List<Schedule>> =
         scheduleDao.getSchedulesForMedicationFlow(medicationId).map { list -> list.map { it.toDomain() } }
 
-    suspend fun getSchedulesForMedicationSync(medicationId: Long): List<Schedule> =
+    override suspend fun getSchedulesForMedicationSync(medicationId: Long): List<Schedule> =
         scheduleDao.getSchedulesForMedicationSync(medicationId).map { it.toDomain() }
 
-    suspend fun getAllActiveSchedulesSync(): List<Schedule> =
+    override suspend fun getAllActiveSchedulesSync(): List<Schedule> =
         scheduleDao.getAllActiveSync().map { it.toDomain() }
 
-    suspend fun getAllActiveMedicationsSync(): Map<Long, Medication> =
+    override suspend fun getAllActiveMedicationsSync(): Map<Long, Medication> =
         medicationDao.getAllActiveSync().associate { it.id to it.toDomain() }
 
-    suspend fun getAllPhotosSync(): Map<Long, List<MedicationPhoto>> =
+    override suspend fun getAllPhotosSync(): Map<Long, List<MedicationPhoto>> =
         photoDao.getAllPhotosSync().groupBy { it.medicationId }
             .mapValues { entry -> entry.value.map { it.toDomain() } }
 }

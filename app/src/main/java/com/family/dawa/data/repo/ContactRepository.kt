@@ -6,16 +6,18 @@ import com.family.dawa.domain.model.Contact
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+import com.family.dawa.domain.repository.IContactRepository
+
 class ContactRepository(
     private val contactDao: ContactDao
-) {
-    val primaryContactFlow: Flow<Contact?> =
+) : IContactRepository {
+    override val primaryContactFlow: Flow<Contact?> =
         contactDao.getPrimaryContactFlow().map { it?.toDomain() }
 
-    suspend fun getPrimaryContact(): Contact? =
+    override suspend fun getPrimaryContact(): Contact? =
         contactDao.getPrimaryContactSync()?.toDomain()
 
-    suspend fun savePrimaryContact(contact: Contact) {
+    override suspend fun savePrimaryContact(contact: Contact) {
         val existing = contactDao.getPrimaryContactSync()
         val entity = if (existing != null) {
             ContactEntity.fromDomain(contact.copy(id = existing.id))

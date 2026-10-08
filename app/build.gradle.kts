@@ -79,6 +79,11 @@ dependencies {
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    // Koin Dependency Injection
+    val koinVersion = "3.5.6"
+    implementation("io.insert-koin:koin-android:$koinVersion")
+    implementation("io.insert-koin:koin-androidx-compose:$koinVersion")
+
     // Image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
 

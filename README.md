@@ -12,11 +12,90 @@
 * **Project Directory:** `/Users/islam/AndroidStudioProjects/Dawa`
 * **Direct APK File:** `app/build/outputs/apk/debug/app-debug.apk`
 * **Tech Stack:** Kotlin 2.0 + Jetpack Compose (Material 3)
+* **Architecture:** Clean Architecture + MVI (Model-View-Intent) with strict Unidirectional Data Flow (UDF)
+* **Dependency Injection:** Koin (Koin Android & Koin Compose)
 * **Local Persistence:** Room 2.6.1 (100% Offline — No `INTERNET` permission declared in the manifest)
 * **Scheduling Engine:** Android `AlarmManager` with exact `setAlarmClock()` (exempt from Doze mode)
 * **Audio Engine:** Melodic chime + family-recorded audio clips + on-device Arabic Text-to-Speech (TTS)
 * **Compatibility:** Android 8.0 (API 26) through Android 15 (API 35), with dedicated support for **Xiaomi HyperOS / MIUI**.
 * **Language & Typography:** Arabic-only UI, forced RTL, Arabic-Indic numerals (`٠١٢٣٤٥٦٧٨٩`), and bundled Cairo font.
+
+---
+
+## 🏗️ Architecture & Package Organization
+
+The application strictly implements **Clean Architecture**, **MVI (Model-View-Intent)**, and **Dependency Injection via Koin**:
+
+```
+app/src/main/java/com/family/dawa/
+├── core/                       # Cross-cutting primitives
+│   ├── base/                   # MviViewModel, ViewIntent, ViewState, ViewEffect
+│   ├── time/                   # TimeProvider, ArabicFormatters, DebugTimeProvider
+│   ├── permissions/            # Xiaomi & system permission health checker
+│   ├── audio/                  # AudioRecorder, VoicePlayer, TtsEngine
+│   └── image/                  # ImageStore (local photo scaling & storage)
+│
+├── domain/                     # Pure business logic (no Android UI dependencies)
+│   ├── model/                  # Domain models (Medication, Slot, DoseItem, DoseEvent, Contact, AppSettings)
+│   ├── repository/             # Repository interfaces (IMedicationRepository, IDoseRepository, ...)
+│   ├── scheduler/              # IAlarmScheduler abstraction
+│   ├── engine/                 # Pure scheduling resolution engine (DoseEngine)
+│   ├── ledger/                 # Pure dose transaction ledger (DoseLedger)
+│   └── usecase/                # Single-responsibility use cases
+│       ├── caregiver/          # GetCaregiverHomeStateUseCase, ConfirmDoseSlotUseCase, ...
+│       ├── medications/        # GetMedicationsUseCase, SaveMedicationUseCase, ...
+│       ├── history/            # GetTodayTimelineUseCase, GetDoseHistoryUseCase, ...
+│       ├── settings/           # GetSettingsUseCase, VerifyAdminPinUseCase, ...
+│       ├── contact/            # GetPrimaryContactUseCase, SavePrimaryContactUseCase
+│       └── debug/              # SetDebugTimeOffsetUseCase, ResetTodayEventsUseCase
+│
+├── data/                       # Data layer & infrastructure
+│   ├── db/                     # Room AppDatabase, DAOs, Entities
+│   ├── repo/                   # Repository implementations (MedicationRepository, DoseRepository, ...)
+│   ├── settings/               # DataStore SettingsRepository implementation
+│   └── demo/                   # DemoSeeder
+│
+├── di/                         # Koin Dependency Injection modules
+│   ├── AppModule.kt            # Core utilities, Audio, TimeProvider, AlarmScheduler
+│   ├── DatabaseModule.kt       # Room Database, DAOs, DoseLedger
+│   ├── RepositoryModule.kt     # Binds domain repository interfaces to data implementations
+│   ├── UseCaseModule.kt        # Binds domain use cases
+│   └── ViewModelModule.kt      # Binds MVI ViewModels
+│
+├── alarm/                      # Android AlarmManager & BroadcastReceivers
+│   ├── AlarmReceiver.kt        # KoinComponent exact alarm receiver
+│   ├── AndroidAlarmScheduler.kt# IAlarmScheduler implementation
+│   ├── AlarmSync.kt            # Resync engine for exact alarms
+│   ├── NotificationHelper.kt   # High-priority full-screen intent notifications
+│   └── SystemReceivers.kt      # Boot & time change receivers
+│
+└── presentation/               # Jetpack Compose UI & MVI Presentation Layer
+    ├── components/             # Reusable accessible components (BigActionButton, DoseCard, ...)
+    ├── navigation/             # DawaNavGraph and Routes
+    ├── theme/                  # DawaTheme, Colors, Typography (Cairo)
+    │
+    │   # Each feature is strictly split into 3 files:
+    │   # 1. *Contract.kt   -> Pure UDF definitions (ViewIntent, ViewState, ViewEffect)
+    │   # 2. *ViewModel.kt  -> ViewModel extending MviViewModel
+    │   # 3. *Screen.kt     -> Composable screen collecting state & emitting intents
+    │
+    ├── caregiver/              # Grandma's screen & lock-screen ReminderActivity
+    │   ├── CaregiverContract.kt
+    │   ├── CaregiverViewModel.kt
+    │   ├── CaregiverScreen.kt
+    │   └── reminder/ReminderActivity.kt
+    │
+    └── admin/                  # Family Admin features
+        ├── dashboard/          # AdminDashboardContract, AdminDashboardViewModel, AdminDashboardScreen
+        ├── pin/                # AdminPinContract, AdminPinViewModel, AdminPinScreen
+        ├── medications/        # AdminMedListContract, AdminMedListViewModel, AdminMedListScreen
+        │   └── editor/         # AdminMedEditorContract, AdminMedEditorViewModel, AdminMedEditorScreen
+        ├── history/            # AdminHistoryContract, AdminHistoryViewModel, AdminHistoryScreen
+        ├── contact/            # AdminContactContract, AdminContactViewModel, AdminContactScreen
+        ├── settings/           # AdminSettingsContract, AdminSettingsViewModel, AdminSettingsScreen
+        ├── health/             # AdminHealthContract, AdminHealthViewModel, AdminHealthCheckScreen
+        └── debug/              # DebugContract, DebugViewModel, DebugScreen
+```
 
 ---
 

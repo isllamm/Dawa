@@ -45,7 +45,7 @@
 
         <!-- Full-screen reminder over the lock screen -->
         <activity
-            android:name=".ui.caregiver.reminder.ReminderActivity"
+            android:name=".presentation.caregiver.reminder.ReminderActivity"
             android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"

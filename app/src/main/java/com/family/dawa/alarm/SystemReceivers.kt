@@ -3,18 +3,21 @@ package com.family.dawa.alarm
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.family.dawa.DawaApp
+import com.family.dawa.domain.scheduler.IAlarmScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class BootReceiver : BroadcastReceiver() {
+class BootReceiver : BroadcastReceiver(), KoinComponent {
+    private val alarmScheduler: IAlarmScheduler by inject()
+
     override fun onReceive(context: Context, intent: Intent) {
-        val app = context.applicationContext as? DawaApp ?: return
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                app.container.alarmSync.resync()
+                alarmScheduler.resync()
             } finally {
                 pendingResult.finish()
             }
@@ -22,13 +25,14 @@ class BootReceiver : BroadcastReceiver() {
     }
 }
 
-class TimeChangeReceiver : BroadcastReceiver() {
+class TimeChangeReceiver : BroadcastReceiver(), KoinComponent {
+    private val alarmScheduler: IAlarmScheduler by inject()
+
     override fun onReceive(context: Context, intent: Intent) {
-        val app = context.applicationContext as? DawaApp ?: return
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                app.container.alarmSync.resync()
+                alarmScheduler.resync()
             } finally {
                 pendingResult.finish()
             }

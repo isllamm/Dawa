@@ -15,7 +15,7 @@ import com.family.dawa.core.time.ArabicFormatters
 import com.family.dawa.domain.model.DoseItem
 import com.family.dawa.domain.model.Slot
 import com.family.dawa.ui.MainActivity
-import com.family.dawa.ui.caregiver.reminder.ReminderActivity
+import com.family.dawa.presentation.caregiver.reminder.ReminderActivity
 import java.io.File
 
 class NotificationHelper(private val context: Context) {

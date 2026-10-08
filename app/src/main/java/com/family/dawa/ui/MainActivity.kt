@@ -8,11 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.family.dawa.DawaApp
-import com.family.dawa.ui.caregiver.CaregiverViewModel
-import com.family.dawa.ui.caregiver.CaregiverViewModelFactory
+import com.family.dawa.presentation.navigation.DawaNavGraph
 import com.family.dawa.ui.theme.DawaTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,23 +23,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val app = application as DawaApp
-        val container = app.container
-
         checkAndRequestPermissions()
 
         setContent {
             DawaTheme {
                 val navController = rememberNavController()
-                val caregiverViewModel: CaregiverViewModel = viewModel(
-                    factory = CaregiverViewModelFactory(container)
-                )
-
-                DawaNavGraph(
-                    navController = navController,
-                    container = container,
-                    caregiverViewModel = caregiverViewModel
-                )
+                DawaNavGraph(navController = navController)
             }
         }
     }
