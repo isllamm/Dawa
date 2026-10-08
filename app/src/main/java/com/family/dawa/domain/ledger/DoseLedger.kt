@@ -124,7 +124,8 @@ class DoseLedger(
     }
 
     suspend fun updateEventStatus(eventId: Long, newStatus: EventStatus, now: ZonedDateTime) {
-        val events = doseEventDao.getEventsBetweenSync(LocalDate.now().minusDays(30), LocalDate.now())
+        val today = now.toLocalDate()
+        val events = doseEventDao.getEventsBetweenSync(today.minusDays(30), today)
         val target = events.firstOrNull { it.id == eventId } ?: return
         doseEventDao.update(
             target.copy(

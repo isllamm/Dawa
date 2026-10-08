@@ -30,13 +30,14 @@ class AdminMedEditorViewModel(
                         val schedules = getMedicationByIdUseCase.getSchedules(intent.id)
                         updateState {
                             copy(
+                                loadedMedication = med,
                                 medicationId = med.id,
                                 name = med.name,
                                 strength = med.strength,
                                 notes = med.notes,
                                 audioPath = med.audioPath,
                                 photoPath = photos.firstOrNull()?.path,
-                                schedules = if (schedules.isNotEmpty()) schedules else schedules
+                                schedules = schedules.ifEmpty { this.schedules }
                             )
                         }
                     }
@@ -84,7 +85,10 @@ class AdminMedEditorViewModel(
                 if (current.name.isBlank()) return
                 viewModelScope.launch {
                     updateState { copy(isSaving = true) }
-                    val med = Medication(
+                    // Start from the loaded medication so fields the editor doesn't show
+                    // (colorTag, shapeTag, createdAt) are kept when saving an edit.
+                    val base = current.loadedMedication ?: Medication(name = current.name.trim())
+                    val med = base.copy(
                         id = current.medicationId,
                         name = current.name.trim(),
                         strength = current.strength.trim(),

@@ -3,6 +3,7 @@ package com.family.dawa.presentation.admin.medications.editor
 import com.family.dawa.core.base.ViewEffect
 import com.family.dawa.core.base.ViewIntent
 import com.family.dawa.core.base.ViewState
+import com.family.dawa.domain.model.Medication
 import com.family.dawa.domain.model.Schedule
 
 sealed interface AdminMedEditorIntent : ViewIntent {
@@ -22,6 +23,7 @@ sealed interface AdminMedEditorIntent : ViewIntent {
 }
 
 data class AdminMedEditorState(
+    val loadedMedication: Medication? = null,
     val medicationId: Long = 0L,
     val name: String = "",
     val strength: String = "",
