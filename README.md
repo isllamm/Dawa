@@ -1,121 +1,150 @@
-# تطبيق دوا (Dawa) 💊
-### تطبيق التذكير البصري والصوتي الذكي لمواعيد الأدوية لكبار السن (غير القارئين)
+# Dawa (دوا) 💊
+### Visual & Audio Medication Schedule for Elderly Caregivers (Non-Reading UX)
 
-تم تصميم وبناء هذا التطبيق خصيصاً لمساعدة **مقدمة الرعاية المسنة (أكثر من ٨٠ عاماً)** التي تستطيع استخدام الهاتف ولكن **لا تجيد القراءة والكتابة**، لإعطاء الأدوية لجدو في مواعيدها المحددة بدقة تامة وبأقصى درجات الأمان.
+**Dawa** is a specialized Android application built specifically for an **elderly caregiver (80+ years old)** who can operate a smartphone but **cannot reliably read or write**. It ensures she administers medications to an elderly family member at the exact scheduled times with zero ambiguity and maximum safety.
 
-> **الهدف الأسمى للمنتج:**  
-> «جعل إعطاء الدواء الخاطئ في الوقت الخاطئ أمراً في غاية الصعوبة، دون الاعتماد على القراءة إطلاقاً».
-
----
-
-## 📱 المواصفات الفنية ومكان المشروع
-* **مسار المشروع في Android Studio:**  
-  `/Users/islam/AndroidStudioProjects/Dawa`
-* **ملف الـ APK الجاهز للتثبيت المباشر على الهاتف:**  
-  `/Users/islam/AndroidStudioProjects/Dawa/app/build/outputs/apk/debug/app-debug.apk`
-* **لغة البرمجة:** Kotlin 2.0 + Jetpack Compose (Material 3)
-* **قاعدة البيانات:** Room 2.6.1 (محلي بالكامل 100% Offline - لا يوجد إذن إنترنت نهائياً في التطبيق)
-* **نظام الجدولة:** Android Exact `AlarmManager` (`setAlarmClock` محصن ضد وضع توفير الطاقة Doze Mode)
-* **نظام الصوت:** منبه صوتي رخيم + تسجيلات صوتية بصوت العائلة + محرك نطق باللغة العربية (TTS) بدون اتصال
-* **التوافق:** Android 8.0 (API 26) حتى Android 15 (API 35) - مع دعم خاص لنظام شاومي (HyperOS / MIUI).
+> **Core Product Principle:**  
+> *"Make it extremely difficult for the caregiver to give the wrong medication at the wrong time, without relying on reading or writing."*
 
 ---
 
-## 👵 تجربة المستخدم الخاصة بـ (تيتا)
-تيتا لا تحتاج إلى تصفح قوائم أو التنقل بين شاشات. **التطبيق عبارة عن شاشة واحدة فقط** تعرض دائماً إحدى أربع حالات واضحة ومميزة بالألوان والأيقونات:
-
-### ١. الحالة الخضراء: مفيش دوا دلوقتي (IDLE)
-* علامة خضراء كبيرة هادئة (🟢)
-* عبارة واضحة: *"مفيش دوا دلوقتي.. كل حاجة تمام، ارتاحي يا غالية"*
-* بطاقة موعد الدواء القادم بصورة الدواء ووقت المنبه بالأرقام العربية الواضحة والشمس/القمر (🌅 الصبح / ☀️ الضهر / 🌙 بليل).
-* زر مكبر صوت كبير لسماع التنبيه الصوتي.
-* نقاط توضح مسار اليوم (تم أخذه ✅ / قادم ⚪).
-
-### ٢. الحالة الصفراء الدافئة: دلوقتي معاد الدوا (DUE)
-* ترن نغمة منبه واضحة وجميلة، ويعمل الاهتزاز، وتفتح الشاشة فوق شاشة القفل مباشرة حتى لو كان الهاتف مقفلاً.
-* يقول الصوت تلقائياً: *"دلوقتي معاد الدوا.. خدي الأدوية اللي على الشاشة"*.
-* تُعرض صور الأدوية بحجم عملاق جداً مطابقة للأدوية الحقيقية.
-* تُعرض الجرعة كأيقونات حبات واضحة:
-  * 💊 = قرص واحد
-  * 💊 💊 = قرصين
-  * ½ 💊 = نصف قرص
-* **زر عملاق جداً: [ ✔ اديت الدوا ]**
-* **حماية من الضغط غير المقصود (Accidental Tap Guard):** يظل الزر غير مفعل لأول ٣ ثوانٍ من ظهور الشاشة لتجنب أي لمسة عفوية أثناء إخراج الهاتف أو فتح الشاشة.
-
-### ٣. الحالة الخضراء الاحتفالية: تمام (DONE)
-* فور الضغط على زر "اديت الدوا"، تظهر شاشة خضراء كاملة بعلامة (✅) عملاقة وكلمة **"تمام"**، ويقول الصوت: *"تمام، تسلم إيدك يا غالية.. خلصنا"*.
-* تختفي الشاشة تلقائياً بعد ٤ ثوانٍ لتعود للشاشة الخضراء الهادئة.
-* **لا يوجد زر تراجع معقد** يربك تيتا. في حال الضغط بالخطأ، يقوم أحد أفراد العائلة بتصحيحه من شاشة الإدارة.
-
-### ٤. الحالة الحمراء: الدوا اتأخر معاده (MISSED)
-* إذا مر وقت الدواء وتجاوز مهلة الانتظار (افتراضياً ٦٠ دقيقة) دون تأكيد:
-* تتحول الشاشة للون الأحمر الهادئ (⛔) وتقول: *"الدوا ده اتأخر معاده"*.
-* **لا يقدم التطبيق أي نصائح طبية بتناول جرعة مضاعفة أو تعويضية.**
-* يظهر زر اتصال مباشر كبير جداً: **[ 📞 كلّمي ماما ]** لطلب المساعدة فوراً، مع زر **[ 👍 حاضر ]** لتأكيد العلم والعودة للوضع الهادئ.
+## 📱 Technical Overview
+* **Project Directory:** `/Users/islam/AndroidStudioProjects/Dawa`
+* **Direct APK File:** `app/build/outputs/apk/debug/app-debug.apk`
+* **Tech Stack:** Kotlin 2.0 + Jetpack Compose (Material 3)
+* **Local Persistence:** Room 2.6.1 (100% Offline — No `INTERNET` permission declared in the manifest)
+* **Scheduling Engine:** Android `AlarmManager` with exact `setAlarmClock()` (exempt from Doze mode)
+* **Audio Engine:** Melodic chime + family-recorded audio clips + on-device Arabic Text-to-Speech (TTS)
+* **Compatibility:** Android 8.0 (API 26) through Android 15 (API 35), with dedicated support for **Xiaomi HyperOS / MIUI**.
+* **Language & Typography:** Arabic-only UI, forced RTL, Arabic-Indic numerals (`٠١٢٣٤٥٦٧٨٩`), and bundled Cairo font.
 
 ---
 
-## 👨‍👩‍👦 شاشة الإدارة للعائلة (Admin Mode)
-لحماية تيتا من الدخول بالخطأ إلى الإعدادات:
-* يوجد ترس صغير رمادي باهت في أعلى الشاشة يتطلب **الضغط المطول لمدة ٣ ثوانٍ متصلة** لفتحه.
-* يطلب إدخال رقم سري مكون من ٤ أرقام (الرقم الافتراضي: **١٢٣٤**).
+## 👵 The Caregiver Experience (Single-Screen Architecture)
+Grandma never navigates through complex menus, tabs, or settings. The application consists of **one single screen** that deterministically displays one of four distinct visual states:
 
-### ما يمكن للعائلة فعله:
-1. **إدارة الأدوية (Meds):**
-   * إضافة دواء جديد بالاسم، التركيز، والملاحظات.
-   * التقاط صورة واضحة لعلبة الدواء أو شريط الدواء أو الحبة بالكاميرا أو اختيارها من المعرض.
-   * إضافة مواعيد متعددة للدواء الواحد مع تحديد الجرعة (نصف قرص، قرص، قرصين...) والعلاقة بالوجبات (قبل الفطار، بعد الغدا، إلخ).
-   * **تسجيل مقطع صوتي مخصص للدواء:** بصوت الابن أو الحفيدة (مثال: *"يا تيتا ده دوا الضغط بتاع الصبح"*).
-2. **سجل الأيام السابقة (History):**
-   * استعراض ما إذا كانت الأدوية قد أُعطيت في موعدها خلال الـ ٣٠ يوماً الماضية.
-   * إمكانية تصحيح حالة دواء إذا كانت تيتا قد أعطته وتأخرت في الضغط على الزر.
-3. **رقم الطوارئ (Contact):**
-   * تحديد اسم ورقم هاتف الابن أو الابنة للاتصال بهم بنقرة واحدة عند تأخر الدواء.
-4. **الإعدادات (Settings):**
-   * ضبط مواعيد الوجبات، ومهلة التأخير، وفترة إعادة رنين المنبه، وتغيير الرقم السري.
-   * نص إخلاء المسؤولية والتنبيه الطبي.
-5. **فحص الصلاحيات والشاومي (Health Check):**
-   * التحقق من الصلاحيات وأذونات هواتف شاومي لضمان رن المنبه دائماً.
-6. **أدوات التجربة والمطور (Debug Tools):**
-   * زر لاختبار رن منبه حقيقي بعد ١٠ ثوانٍ على شاشة القفل.
-   * تسريع الوقت الافتراضي داخل التطبيق (+١٥ دقيقة، +١ ساعة، +١ يوم) لاختبار جدول اليوم بالكامل في دقيقة واحدة.
-   * مسح سجل اليوم للبدء من جديد.
+```
+┌─────────────────────────────────┐      ┌─────────────────────────────────┐
+│ ① IDLE (Green)                  │      │ ② DUE (Warm Amber)              │
+│                                 │      │                                 │
+│        🟢                       │      │        🔔                       │
+│    مفيش دوا دلوقتي              │      │    دلوقتي معاد الدوا            │
+│                                 │      │ ┌───────────┐ ┌───────────┐     │
+│  ┌───────────────────────────┐  │      │ │  PHOTO A  │ │  PHOTO B  │     │
+│  │ الدوا الجاي: ☀️ ٢:٠٠        │  │      │ │    💊     │ │   💊💊    │     │
+│  │ [صورة الدواء]             │  │      │ └───────────┘ └───────────┘     │
+│  └───────────────────────────┘  │      │                                 │
+│                                 │      │ ┌─────────────────────────────┐ │
+│         [ 🔊 اسمعي ]            │      │ │   ✔  اديت الدوا (Huge)       │ │
+│   ✅ ⚪ ⚪ (Today Dots)        │      │ └─────────────────────────────┘ │
+└─────────────────────────────────┘      └─────────────────────────────────┘
+
+┌─────────────────────────────────┐      ┌─────────────────────────────────┐
+│ ③ DONE (Celebratory Green - 4s) │      │ ④ MISSED (Calm Red)             │
+│                                 │      │                                 │
+│               ✅                 │      │               ⛔                │
+│              تمام               │      │        اتأخر معاده              │
+│      تسلم إيدك يا غالية         │      │     [صورة الدواء بالأحمر]       │
+│                                 │      │ ┌─────────────────────────────┐ │
+│    🔊 "تمام، تسلم إيدك.. خلصنا" │      │ │ 📞 كلّمي ماما (One-Tap Call) │ │
+│                                 │      │ ├─────────────────────────────┤ │
+│                                 │      │ │ 👍 حاضر (Acknowledge)       │ │
+└─────────────────────────────────┘      └─────────────────────────────────┘
+```
+
+### 1. State A: IDLE (مفيش دوا دلوقتي — Green)
+* A large, calming green circle (🟢).
+* Clear reassurance: *"No medication right now. Everything is fine, take some rest."*
+* **Next Dose Card:** Visual time-of-day indicator (🌅 morning / ☀️ noon / 🌙 night), time in large Arabic numerals (e.g. `٢:٠٠ مساءً`), and the photo of the upcoming medicine.
+* **Today Dots Strip:** Glanceable progress dots showing today's timeline (✅ completed, ⚪ upcoming).
+* **Speaker Button (🔊):** Plays the spoken announcement on demand.
+
+### 2. State B: DUE (دلوقتي معاد الدوا — Warm Amber Alert)
+* When a dose is due, the app rings with a pleasant harmonic chime, vibrates, and **launches over the lock screen** via `ReminderActivity` (even if the phone is locked).
+* Spoken voice guidance automatically announces: *"It is medicine time... take the medicines shown on screen."*
+* Features **giant photos** of the physical medications.
+* Quantities are rendered as visual pill pictograms:
+  * 💊 = 1 pill
+  * 💊 💊 = 2 pills
+  * ½ 💊 = half a pill
+* **Huge Action Button: [ ✔ اديت الدوا ]** (Administered the medication).
+* **3-Second Accidental Tap Guard:** The button stays disabled for the first 3 seconds after the screen turns on to prevent unintentional taps when picking up the phone.
+
+### 3. State C: DONE (تمام — Green Confirmation)
+* Tapping "اديت الدوا" immediately triggers an atomic transaction marking all medicines in the slot as completed.
+* A full-screen celebratory card appears with a giant ✅ and the voice announcement: *"تمام، تسلم إيدك يا غالية.. خلصنا"*.
+* Automatically dismisses after 4.5 seconds and returns to the Idle screen.
+* **No confusing undo dialog:** If grandma taps the button by accident, family members can correct the entry from the Admin History screen.
+
+### 4. State D: MISSED (الدوا اتأخر معاده — Calm Red Warning)
+* If a dose is not confirmed within the grace period (default: 60 minutes):
+* The screen turns into a calm red state (⛔) with dimmed medicine photos.
+* **Strict Medical Safety:** The app **never** advises taking a double or late dose.
+* Shows a massive one-tap call button: **[ 📞 كلّمي ماما ]** to contact the family, plus an **[ 👍 حاضر ]** button to acknowledge and return to Idle.
 
 ---
 
-## ⚙️ إعدادات هاتف شاومي أندرويد 15 (Xiaomi HyperOS / MIUI)
-هواتف شاومي تحتوي على ميزات أمان قوية قد توقف المنبهات في الخلفية إذا لم يتم منح الأذونات التالية:
-1. **التشغيل التلقائي (Autostart):**
-   * ادخل على شاشة الإدارة في التطبيق -> "فحص الصلاحيات" -> اضغط "فتح إعدادات شاومي" وفعل خيار (التشغيل التلقائي / Autostart) لتطبيق **دوا**.
-2. **توفير البطارية (Battery Saver):**
-   * اضغط "إلغاء قيود البطارية" واضبط وضع البطارية على **(لا توجد قيود / No restrictions)**.
-3. **الظهور فوق شاشة القفل (Show on Lock screen):**
-   * من إعدادات أذونات التطبيق في شاومي، تأكد من تفعيل "العرض على شاشة القفل" و "عرض النوافذ المنبثقة أثناء التشغيل في الخلفية".
+## 👨‍👩‍👦 Admin Mode (For Family Members Who Read)
+To prevent the caregiver from accidentally altering settings:
+* Entry requires a **3-second long-press** on the subtle gear icon at the top corner.
+* Protected by a 4-digit PIN pad (default demo PIN: `1234`).
+
+### Admin Capabilities:
+1. **Medication Management:**
+   * Add, edit, or archive medications.
+   * Attach high-resolution photos of boxes, blisters, or pills with local cropping and compression.
+   * Configure multiple schedules, meal relations (*Before Breakfast, After Breakfast, After Lunch, After Dinner, Before Sleep*), and quantities.
+   * **Custom Family Voice Recordings:** Record a personal audio instruction per medication (e.g., *"Grandma, this is grandpa's blood pressure pill after breakfast"*).
+2. **Medication History:**
+   * 30-day historical ledger recording scheduled times, actual confirmation timestamps, and who confirmed.
+   * Allows the family to correct mistakes (e.g., mark a missed dose as "taken late").
+3. **Emergency Contact:**
+   * Configure the primary family contact (name, phone number, and photo) for the one-tap call button.
+4. **Settings:**
+   * Configure meal baseline times, grace periods, re-alert intervals, change PIN, and view the medical disclaimer.
+5. **Health Check (Xiaomi & Permissions):**
+   * Live validator for exact alarm permissions, notification channels, battery optimization, and Xiaomi Autostart.
+6. **Developer & Debug Tools:**
+   * Test a real lock-screen alarm 10 seconds into the future.
+   * Fast-forward virtual time (+15m, +1h, +1d) to simulate a complete daily schedule in under two minutes.
+   * Reset today's events.
 
 ---
 
-## 🧪 البيانات التجريبية المحملة مسبقاً (Demo Data)
-عند تشغيل التطبيق لأول مرة، يكون محملاً تلقائياً بالبيانات التالية الجاهزة للاختبار:
-1. **بانادول أزرق للصداع:** الساعة ٠٨:٠٠ صباحاً (قرص واحد) - قبل الفطار.
-2. **كونكور للضغط:** الساعة ٠٨:٠٠ صباحاً (قرصين) - بعد الفطار.
-3. **مكمل فيتامين د:** الساعة ٠٢:٠٠ مساءً (قرص واحد) - بعد الغداء.
-4. **أوميجا ٣ مسائي:** الساعة ٠٨:٠٠ مساءً (قرص واحد) - بعد العشاء.
-5. **رقم الاتصال:** ماما.
-6. **الرقم السري للإدارة:** `١٢٣٤`.
+## ⚙️ Xiaomi Android 15 (HyperOS / MIUI) Configuration
+Xiaomi devices feature aggressive background task management. To guarantee alarms fire and display over the lock screen:
+1. **Autostart (التشغيل التلقائي):**
+   * Open the app -> Admin -> "فحص الصلاحيات" -> tap **"فتح إعدادات شاومي"** -> enable **Autostart** for **دوا**.
+2. **Battery Saver (موفر البطارية):**
+   * In app battery settings, set to **"No restrictions" (بدون قيود)**.
+3. **Lock Screen Display:**
+   * In Xiaomi App Permissions, ensure **"Show on Lock screen"** and **"Display pop-up windows while running in the background"** are granted.
 
 ---
 
-## 🛠️ كيفية تثبيت التطبيق وتشغيله
-### لتثبيت الـ APK مباشرة على الهاتف:
-1. قم بتوصيل هاتف شاومي بالكمبيوتر عبر كابل USB مع تفعيل تصحيح أخطاء USB (USB Debugging)، ونفذ:
-   ```bash
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
-   ```
-2. أو أرسل ملف `app-debug.apk` الموجود في مسار `app/build/outputs/apk/debug/` إلى الهاتف عبر واتساب أو تليجرام أو البلوتوث وثبته مباشرة (Sideload).
+## 🧪 Pre-Seeded Demo Data
+On first install, the database automatically populates with realistic test data:
+1. **بانادول أزرق للصداع (Panadol):** 08:00 AM (1 pill) — Before Breakfast
+2. **كونكور للضغط (Concor):** 08:00 AM (2 pills) — After Breakfast
+3. **مكمل فيتامين د (Vitamin D):** 02:00 PM (1 pill) — After Lunch
+4. **أوميجا ٣ مسائي (Omega 3):** 08:00 PM (1 pill) — After Dinner
+5. **Primary Contact:** ماما (01012345678)
+6. **Admin PIN:** `1234`
 
-### لبناء وتشغيل التطبيق من سطر الأوامر:
+---
+
+## 🚀 Building & Installation
+
+### Install the Ready APK Directly
+If your Android device is connected via USB with USB Debugging enabled:
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+*Alternatively, transfer `app/build/outputs/apk/debug/app-debug.apk` to your phone via USB, WhatsApp, or Bluetooth and tap to install.*
+
+### Build from Source
 ```bash
 cd /Users/islam/AndroidStudioProjects/Dawa
-./gradlew testDebugUnitTest  # تشغيل جميع الاختبارات
-./gradlew assembleDebug      # بناء ملف APK جديد
+./gradlew testDebugUnitTest  # Execute pure unit tests
+./gradlew assembleDebug      # Compile and package debug APK
 ```
