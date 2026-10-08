@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.Dawa" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">#FAF7F2</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">#FAF7F2</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
         <item name="android:windowBackground">@color/bg_calm</item>
     </style>
 </resources>
