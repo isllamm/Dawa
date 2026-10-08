@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">دوا</string>
+
+    <!-- Caregiver states -->
+    <string name="state_idle_title">مفيش دوا دلوقتي</string>
+    <string name="state_idle_subtitle">كل حاجة تمام، ارتاحي</string>
+    <string name="state_idle_next">الدوا الجاي</string>
+    <string name="state_due_title">دلوقتي معاد الدوا</string>
+    <string name="state_due_subtitle">خدي الأدوية اللي على الشاشة</string>
+    <string name="btn_confirm_taken">اديت الدوا</string>
+    <string name="state_done_title">تمام</string>
+    <string name="state_done_subtitle">تسلم إيدك يا غالية</string>
+    <string name="state_missed_title">الدوا ده اتأخر معاده</string>
+    <string name="btn_call_contact">كلّمي %1$s</string>
+    <string name="btn_acknowledge_missed">حاضر</string>
+    <string name="btn_speak">اسمعي</string>
+
+    <!-- Quantity & Units -->
+    <string name="qty_half_pill">نص قرص</string>
+    <string name="qty_one_pill">قرص واحد</string>
+    <string name="qty_two_pills">قرصين</string>
+    <string name="qty_n_pills">%1$s أقراص</string>
+
+    <!-- Time of day -->
+    <string name="time_morning">الصبح</string>
+    <string name="time_noon">الضهر</string>
+    <string name="time_afternoon">العصر</string>
+    <string name="time_evening">المغرب</string>
+    <string name="time_night">بليل</string>
+    <string name="am">صباحاً</string>
+    <string name="pm">مساءً</string>
+
+    <!-- Admin / General -->
+    <string name="admin_title">إدارة الأدوية</string>
+    <string name="admin_pin_prompt">أدخل رقم المرور السري</string>
+    <string name="admin_pin_setup">إنشاء رقم مرور جديد</string>
+    <string name="admin_pin_confirm">تأكيد رقم المرور</string>
+    <string name="admin_pin_error">رقم المرور غير صحيح</string>
+    <string name="admin_tab_dashboard">اليوم</string>
+    <string name="admin_tab_meds">الأدوية</string>
+    <string name="admin_tab_history">السجل</string>
+    <string name="admin_tab_settings">الإعدادات</string>
+
+    <!-- Notification channels -->
+    <string name="channel_due_name">تنبيهات مواعيد الدواء</string>
+    <string name="channel_due_desc">تنبيهات حرجة عند حلول موعد أخذ الدواء</string>
+    <string name="channel_missed_name">تنبيهات الأدوية المتأخرة</string>
+    <string name="channel_missed_desc">إشعار إذا تأخر إعطاء الدواء عن موعده</string>
+
+    <!-- Disclaimer -->
+    <string name="medical_disclaimer_title">تنبيه وإخلاء مسؤولية طبي</string>
+    <string name="medical_disclaimer_body">هذا التطبيق وسيلة للتذكير البصري والصوتي بمواعيد الأدوية المحددة مسبقاً من قِبل العائلة بناءً على تعليمات الطبيب المعالج فقط.\n\nالتطبيق لا يقدم أي مشورة طبية، ولا يحدد جرعات، ولا يقرر إعطاء دواء بديل أو تعويض جرعة فائتة.\n\nفي حال الشك أو تفويت أي جرعة يجب استشارة الطبيب المختص فوراً.</string>
+    <string name="medical_disclaimer_agree">قرأت وأوافق</string>
+</resources>

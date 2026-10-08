@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_calm">#FAF7F2</color>
+    <color name="green_primary">#2E9E6A</color>
+    <color name="green_surface">#E7F5EE</color>
+    <color name="amber_primary">#F2A516</color>
+    <color name="amber_surface">#FFF4DC</color>
+    <color name="red_primary">#D64545</color>
+    <color name="red_surface">#FDECEC</color>
+    <color name="text_primary">#1E1E1E</color>
+    <color name="text_secondary">#555555</color>
+</resources>
