@@ -22,29 +22,39 @@ class CaregiverViewModel(
 
     private var doneJob: Job? = null
     private var lastPlayedStateKey: String? = null
+    private var isScreenVisible = false
 
     init {
         viewModelScope.launch {
             getCaregiverHomeStateUseCase().collectLatest { homeState ->
-                updateState { copy(homeState = homeState) }
+                updateState { copy(homeState = homeState, isLoaded = true) }
+                autoPlayVoiceIfNeeded()
+            }
+        }
+    }
 
-                // Auto audio feedback on critical state transitions
-                val stateKey = when (homeState) {
-                    is HomeState.Due -> "due_${homeState.slot.key}"
-                    is HomeState.Missed -> "missed_${homeState.slot.key}"
-                    is HomeState.Idle -> "idle_${homeState.nextSlot?.key}"
-                    is HomeState.Done -> "done_${homeState.slot.key}"
-                }
+    /**
+     * Auto audio feedback on critical state transitions. Only while the screen is visible, so a
+     * screen left open in the background doesn't talk over the full-screen reminder.
+     */
+    private fun autoPlayVoiceIfNeeded() {
+        if (!isScreenVisible || !state.value.isLoaded) return
+        val homeState = state.value.homeState
 
-                if (stateKey != lastPlayedStateKey) {
-                    lastPlayedStateKey = stateKey
-                    when (homeState) {
-                        is HomeState.Due -> voicePlayer.playDueAlert(homeState.items)
-                        is HomeState.Missed -> voicePlayer.playMissedAlert(homeState.contact?.name)
-                        is HomeState.Done -> voicePlayer.playDoneAlert()
-                        is HomeState.Idle -> { /* do not disturb on idle transition */ }
-                    }
-                }
+        val stateKey = when (homeState) {
+            is HomeState.Due -> "due_${homeState.slot.key}"
+            is HomeState.Missed -> "missed_${homeState.slot.key}"
+            is HomeState.Idle -> "idle_${homeState.nextSlot?.key}"
+            is HomeState.Done -> "done_${homeState.slot.key}"
+        }
+
+        if (stateKey != lastPlayedStateKey) {
+            lastPlayedStateKey = stateKey
+            when (homeState) {
+                is HomeState.Due -> voicePlayer.playDueAlert(homeState.items)
+                is HomeState.Missed -> voicePlayer.playMissedAlert(homeState.contact?.name)
+                is HomeState.Done -> voicePlayer.playDoneAlert()
+                is HomeState.Idle -> { /* do not disturb on idle transition */ }
             }
         }
     }
@@ -79,6 +89,12 @@ class CaregiverViewModel(
                     }
                     is HomeState.Done -> voicePlayer.playDoneAlert()
                 }
+            }
+            is CaregiverIntent.ScreenVisibilityChanged -> {
+                isScreenVisible = intent.visible
+                // Not stopping the voice when hidden: the reminder screen opening on top would
+                // otherwise cut off its own alert (both share one VoicePlayer).
+                autoPlayVoiceIfNeeded()
             }
         }
     }

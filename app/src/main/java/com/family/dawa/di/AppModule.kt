@@ -28,5 +28,5 @@ val appModule = module {
     single { AlarmSync(androidContext(), get(), get(), get(), get()) }
     single<IAlarmScheduler> { AndroidAlarmScheduler(androidContext(), get()) }
 
-    single { DemoSeeder(androidContext(), get(), get(), get()) }
+    single { DemoSeeder(androidContext(), get(), get(), get(), get()) }
 }

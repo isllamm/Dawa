@@ -13,9 +13,11 @@ import androidx.compose.runtime.getValue
 import com.family.dawa.domain.model.HomeState
 import com.family.dawa.presentation.caregiver.CaregiverScreen
 import com.family.dawa.presentation.caregiver.CaregiverViewModel
+import com.family.dawa.presentation.components.DebugTimeBannerHost
 import com.family.dawa.ui.theme.DawaTheme
 import kotlinx.coroutines.delay
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 class ReminderActivity : ComponentActivity() {
 
@@ -44,18 +46,22 @@ class ReminderActivity : ComponentActivity() {
             DawaTheme {
                 val uiState by viewModel.state.collectAsState()
 
-                // Auto-close ReminderActivity after dose is confirmed and DONE overlay finishes
-                LaunchedEffect(uiState.homeState, uiState.doneOverlaySlot) {
-                    if (uiState.doneOverlaySlot == null && uiState.homeState !is HomeState.Due) {
-                        delay(500)
+                // Auto-close ReminderActivity after dose is confirmed and DONE overlay finishes.
+                // Wait for the first real state: before it loads the state is a placeholder Idle,
+                // and closing on that made the reminder vanish on slow or cold starts.
+                LaunchedEffect(uiState.isLoaded, uiState.homeState, uiState.doneOverlaySlot) {
+                    if (uiState.isLoaded && uiState.doneOverlaySlot == null && uiState.homeState !is HomeState.Due) {
+                        delay(500.milliseconds)
                         finish()
                     }
                 }
 
-                CaregiverScreen(
-                    viewModel = viewModel,
-                    onOpenAdminPin = { finish() }
-                )
+                DebugTimeBannerHost {
+                    CaregiverScreen(
+                        viewModel = viewModel,
+                        onOpenAdminPin = { finish() }
+                    )
+                }
             }
         }
     }

@@ -6,10 +6,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import com.family.dawa.data.db.DawaDatabase
 import com.family.dawa.data.repo.ContactRepository
 import com.family.dawa.data.repo.MedicationRepository
 import com.family.dawa.data.settings.SettingsRepository
 import com.family.dawa.domain.model.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
@@ -17,7 +20,8 @@ class DemoSeeder(
     private val context: Context,
     private val medicationRepository: MedicationRepository,
     private val contactRepository: ContactRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val database: DawaDatabase
 ) {
 
     suspend fun seedIfNeeded() {
@@ -27,7 +31,20 @@ class DemoSeeder(
         forceSeed()
     }
 
-    suspend fun forceSeed() {
+    /**
+     * Replaces everything with the demo data. Only reachable in debug builds.
+     * It deletes the existing medicines, history, contact and their photo/audio files first, so
+     * demo medicines are never mixed with real ones. Settings and the admin PIN are kept.
+     */
+    suspend fun forceSeed() = withContext(Dispatchers.IO) {
+        database.clearAllTables()
+        listOf("photos", "audio").forEach { dirName ->
+            File(context.filesDir, dirName).listFiles()?.forEach { it.delete() }
+        }
+        seedDemoData()
+    }
+
+    private suspend fun seedDemoData() {
         val photosDir = File(context.filesDir, "photos").apply { mkdirs() }
 
         // Create 4 distinct pill image files so Grandma sees actual pill/box photos
@@ -130,8 +147,6 @@ class DemoSeeder(
             )
         )
 
-        // Default PIN: 1234
-        settingsRepository.setAdminPin("1234")
         settingsRepository.setDemoSeeded(true)
     }
 

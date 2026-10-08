@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.family.dawa.BuildConfig
 import com.family.dawa.core.time.ArabicFormatters
 import com.family.dawa.domain.model.SlotStatus
 import com.family.dawa.domain.model.SlotWithStatus
@@ -166,7 +167,12 @@ fun AdminDashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     NavCard("فحص الصلاحيات", "شاومي والمنبه", "🛡️", onNavigateHealthCheck, Modifier.weight(1f))
-                    NavCard("أدوات التجربة", "تسريع الوقت والاختبار", "🛠️", onNavigateDebug, Modifier.weight(1f))
+                    // Debug tools (time fast-forward) only exist in debug builds
+                    if (BuildConfig.DEBUG) {
+                        NavCard("أدوات التجربة", "تسريع الوقت والاختبار", "🛠️", onNavigateDebug, Modifier.weight(1f))
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }

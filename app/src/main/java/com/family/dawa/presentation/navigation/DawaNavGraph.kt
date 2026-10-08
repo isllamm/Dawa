@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.family.dawa.BuildConfig
 import com.family.dawa.presentation.admin.contact.AdminContactScreen
 import com.family.dawa.presentation.admin.dashboard.AdminDashboardScreen
 import com.family.dawa.presentation.admin.debug.DebugScreen
@@ -113,11 +114,13 @@ fun DawaNavGraph(
             )
         }
 
-        // 10. Admin Developer & Debug
-        composable(Routes.ADMIN_DEBUG) {
-            DebugScreen(
-                onBack = { navController.popBackStack() }
-            )
+        // 10. Admin Developer & Debug (debug builds only)
+        if (BuildConfig.DEBUG) {
+            composable(Routes.ADMIN_DEBUG) {
+                DebugScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }

@@ -43,6 +43,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true // BuildConfig.DEBUG keeps demo data and debug tools out of release builds
     }
 
     packaging {

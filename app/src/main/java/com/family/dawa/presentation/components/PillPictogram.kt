@@ -14,7 +14,8 @@ import com.family.dawa.core.time.ArabicFormatters
 @Composable
 fun PillPictogram(
     quantityHalves: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    scale: Float = 1f
 ) {
     Row(
         modifier = modifier,
@@ -24,18 +25,18 @@ fun PillPictogram(
         val hasHalf = (quantityHalves % 2) != 0
 
         if (hasHalf && pills == 0) {
-            Text("½ 💊", fontSize = 38.sp)
+            Text("½ 💊", fontSize = 38.sp * scale)
         } else {
             val displayPills = Math.min(pills, 4)
             for (i in 0 until displayPills) {
-                Text("💊", fontSize = 38.sp)
-                Spacer(modifier = Modifier.width(4.dp))
+                Text("💊", fontSize = 38.sp * scale)
+                Spacer(modifier = Modifier.width(4.dp * scale))
             }
             if (hasHalf) {
-                Text("½", fontSize = 32.sp)
+                Text("½", fontSize = 32.sp * scale)
             }
             if (pills > 4) {
-                Text("+${ArabicFormatters.toArabicDigits(pills - 4)}", fontSize = 30.sp)
+                Text("+${ArabicFormatters.toArabicDigits(pills - 4)}", fontSize = 30.sp * scale)
             }
         }
     }

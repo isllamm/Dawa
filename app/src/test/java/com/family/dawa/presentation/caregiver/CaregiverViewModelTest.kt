@@ -19,11 +19,14 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,8 +52,11 @@ class CaregiverViewModelTest {
         every { getHomeState() } returns homeStates
     }
 
-    private fun createViewModel() =
-        CaregiverViewModel(getHomeState, confirmDoseSlot, acknowledgeMissedSlot, voicePlayer)
+    /** By default the screen is visible, as when the caregiver is looking at it. */
+    private fun createViewModel(visible: Boolean = true) =
+        CaregiverViewModel(getHomeState, confirmDoseSlot, acknowledgeMissedSlot, voicePlayer).apply {
+            if (visible) sendIntent(CaregiverIntent.ScreenVisibilityChanged(visible = true))
+        }
 
     private fun due(slot: Slot, todaySlots: List<SlotWithStatus> = emptyList()) =
         HomeState.Due(slot = slot, items = slot.items, todaySlots = todaySlots)
@@ -63,6 +69,19 @@ class CaregiverViewModelTest {
 
         homeStates.value = due(morning)
 
+        assertEquals(due(morning), vm.state.value.homeState)
+    }
+
+    @Test
+    fun testInit_isNotLoadedUntilFirstHomeStateArrives() {
+        val pending = MutableSharedFlow<HomeState>(replay = 1)
+        every { getHomeState() } returns pending
+        val vm = createViewModel()
+        assertFalse(vm.state.value.isLoaded)
+
+        pending.tryEmit(due(morning))
+
+        assertTrue(vm.state.value.isLoaded)
         assertEquals(due(morning), vm.state.value.homeState)
     }
 
@@ -114,6 +133,38 @@ class CaregiverViewModelTest {
         homeStates.value = HomeState.Done(slot = morning, nextSlot = null)
 
         verify(exactly = 1) { voicePlayer.playDoneAlert() }
+    }
+
+    @Test
+    fun testHiddenScreen_doesNotAutoPlay() {
+        createViewModel(visible = false)
+
+        homeStates.value = due(morning)
+
+        verify(exactly = 0) { voicePlayer.playDueAlert(any(), any()) }
+    }
+
+    @Test
+    fun testBecomingVisible_playsAlertThatArrivedWhileHidden() {
+        val vm = createViewModel(visible = false)
+        homeStates.value = due(morning)
+
+        vm.sendIntent(CaregiverIntent.ScreenVisibilityChanged(visible = true))
+
+        verify(exactly = 1) { voicePlayer.playDueAlert(morning.items, any()) }
+    }
+
+    @Test
+    fun testHiddenThenVisibleAgain_doesNotReplaySameSlot() {
+        val vm = createViewModel()
+        homeStates.value = due(morning)
+
+        vm.sendIntent(CaregiverIntent.ScreenVisibilityChanged(visible = false))
+        vm.sendIntent(CaregiverIntent.ScreenVisibilityChanged(visible = true))
+
+        verify(exactly = 1) { voicePlayer.playDueAlert(morning.items, any()) }
+        // Hiding must not cut off the voice: the reminder screen on top shares the same player
+        verify(exactly = 0) { voicePlayer.stop() }
     }
 
     // endregion

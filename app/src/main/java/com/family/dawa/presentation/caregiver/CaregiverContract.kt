@@ -11,11 +11,15 @@ sealed interface CaregiverIntent : ViewIntent {
     data class ConfirmTaken(val slot: Slot) : CaregiverIntent
     data class AcknowledgeMissed(val slot: Slot) : CaregiverIntent
     data object ReplayVoice : CaregiverIntent
+    /** Sent by the screen when it starts or stops being visible. Voice alerts only play while visible. */
+    data class ScreenVisibilityChanged(val visible: Boolean) : CaregiverIntent
 }
 
 data class CaregiverState(
     val homeState: HomeState = HomeState.Idle(null, emptyList()),
-    val doneOverlaySlot: Slot? = null
+    val doneOverlaySlot: Slot? = null,
+    /** False until the first real home state arrives, so the screen doesn't act on the placeholder. */
+    val isLoaded: Boolean = false
 ) : ViewState
 
 sealed interface CaregiverEffect : ViewEffect {

@@ -6,13 +6,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -23,15 +18,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.family.dawa.core.time.ArabicFormatters
 import com.family.dawa.domain.model.HomeState
 import com.family.dawa.domain.model.Slot
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.family.dawa.presentation.components.BigActionButton
-import com.family.dawa.presentation.components.DoseCard
+import com.family.dawa.presentation.components.DoseCardGrid
 import com.family.dawa.presentation.components.SpeakerButton
 import com.family.dawa.presentation.components.TodayDotsStrip
 import com.family.dawa.ui.theme.*
@@ -46,38 +44,52 @@ fun CaregiverScreen(
 ) {
     val uiState by viewModel.state.collectAsState()
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BgCalm)
-    ) {
-        if (uiState.doneOverlaySlot != null) {
-            CaregiverDoneContent()
-        } else {
-            when (val home = uiState.homeState) {
-                is HomeState.Due -> {
-                    CaregiverDueContent(
-                        state = home,
-                        onConfirmTaken = { viewModel.sendIntent(CaregiverIntent.ConfirmTaken(home.slot)) },
-                        onReplayVoice = { viewModel.sendIntent(CaregiverIntent.ReplayVoice) }
-                    )
-                }
-                is HomeState.Missed -> {
-                    CaregiverMissedContent(
-                        state = home,
-                        onAcknowledge = { viewModel.sendIntent(CaregiverIntent.AcknowledgeMissed(home.slot)) },
-                        onReplayVoice = { viewModel.sendIntent(CaregiverIntent.ReplayVoice) }
-                    )
-                }
-                is HomeState.Idle -> {
-                    CaregiverIdleContent(
-                        state = home,
-                        onReplayVoice = { viewModel.sendIntent(CaregiverIntent.ReplayVoice) },
-                        onOpenAdminPin = onOpenAdminPin
-                    )
-                }
-                is HomeState.Done -> {
-                    CaregiverDoneContent()
+    LifecycleStartEffect(viewModel) {
+        viewModel.sendIntent(CaregiverIntent.ScreenVisibilityChanged(visible = true))
+        onStopOrDispose {
+            viewModel.sendIntent(CaregiverIntent.ScreenVisibilityChanged(visible = false))
+        }
+    }
+
+    // The caregiver screens already use very large text. Ignore the phone's font-size setting
+    // here so a large system font can't push the medicine cards or buttons off the screen.
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(BgCalm)
+        ) {
+            if (!uiState.isLoaded) {
+                // Plain background until the first real state arrives, rather than a misleading "no medicine now".
+            } else if (uiState.doneOverlaySlot != null) {
+                CaregiverDoneContent()
+            } else {
+                when (val home = uiState.homeState) {
+                    is HomeState.Due -> {
+                        CaregiverDueContent(
+                            state = home,
+                            onConfirmTaken = { viewModel.sendIntent(CaregiverIntent.ConfirmTaken(home.slot)) },
+                            onReplayVoice = { viewModel.sendIntent(CaregiverIntent.ReplayVoice) }
+                        )
+                    }
+                    is HomeState.Missed -> {
+                        CaregiverMissedContent(
+                            state = home,
+                            onAcknowledge = { viewModel.sendIntent(CaregiverIntent.AcknowledgeMissed(home.slot)) },
+                            onReplayVoice = { viewModel.sendIntent(CaregiverIntent.ReplayVoice) }
+                        )
+                    }
+                    is HomeState.Idle -> {
+                        CaregiverIdleContent(
+                            state = home,
+                            onReplayVoice = { viewModel.sendIntent(CaregiverIntent.ReplayVoice) },
+                            onOpenAdminPin = onOpenAdminPin
+                        )
+                    }
+                    is HomeState.Done -> {
+                        CaregiverDoneContent()
+                    }
                 }
             }
         }
@@ -94,6 +106,7 @@ fun CaregiverIdleContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .systemBarsPadding()
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
@@ -223,6 +236,7 @@ fun CaregiverDueContent(
         modifier = Modifier
             .fillMaxSize()
             .background(AmberSurface)
+            .systemBarsPadding()
             .padding(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
@@ -254,46 +268,13 @@ fun CaregiverDueContent(
             )
         }
 
-        Box(
+        DoseCardGrid(
+            items = state.items,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            when (state.items.size) {
-                1 -> {
-                    DoseCard(
-                        item = state.items[0],
-                        photoHeight = 240,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                2 -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        DoseCard(item = state.items[0], photoHeight = 150)
-                        DoseCard(item = state.items[1], photoHeight = 150)
-                    }
-                }
-                else -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(state.items) { item ->
-                            DoseCard(item = item, photoHeight = 120)
-                        }
-                    }
-                }
-            }
-        }
+                .padding(vertical = 12.dp)
+        )
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -317,7 +298,8 @@ fun CaregiverDoneContent() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(GreenSurface),
+            .background(GreenSurface)
+            .systemBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -358,6 +340,7 @@ fun CaregiverMissedContent(
         modifier = Modifier
             .fillMaxSize()
             .background(RedSurface)
+            .systemBarsPadding()
             .padding(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
@@ -386,18 +369,13 @@ fun CaregiverMissedContent(
             )
         }
 
-        Column(
+        DoseCardGrid(
+            items = state.slot.items,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(vertical = 12.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            state.slot.items.forEach { item ->
-                DoseCard(item = item, photoHeight = 130)
-            }
-        }
+        )
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

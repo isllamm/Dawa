@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.family.dawa.presentation.components.DebugTimeBannerHost
 import com.family.dawa.presentation.navigation.DawaNavGraph
 import com.family.dawa.ui.theme.DawaTheme
 
@@ -27,8 +28,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DawaTheme {
-                val navController = rememberNavController()
-                DawaNavGraph(navController = navController)
+                DebugTimeBannerHost {
+                    val navController = rememberNavController()
+                    DawaNavGraph(navController = navController)
+                }
             }
         }
     }

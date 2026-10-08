@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.family.dawa.BuildConfig
 import com.family.dawa.R
 import com.family.dawa.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
@@ -26,6 +27,7 @@ fun AdminSettingsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showDisclaimerDialog by remember { mutableStateOf(false) }
+    var showReseedDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.effect.collectLatest { effect ->
@@ -173,22 +175,60 @@ fun AdminSettingsScreen(
                 }
             }
 
-            // Reseed Demo Data Button
-            item {
-                OutlinedButton(
-                    onClick = { viewModel.sendIntent(AdminSettingsIntent.ReseedDemoData) },
-                    shape = RoundedCornerShape(18.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "إعادة تحميل البيانات التجريبية الافتراضية 🔄",
-                        fontFamily = CairoFontFamily,
-                        color = Color.DarkGray,
-                        fontSize = 16.sp
-                    )
+            // Reseed Demo Data Button (debug builds only: it deletes all medicines and history)
+            if (BuildConfig.DEBUG) {
+                item {
+                    OutlinedButton(
+                        onClick = { showReseedDialog = true },
+                        shape = RoundedCornerShape(18.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "إعادة تحميل البيانات التجريبية الافتراضية 🔄",
+                            fontFamily = CairoFontFamily,
+                            color = Color.DarkGray,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }
+    }
+
+    if (showReseedDialog) {
+        AlertDialog(
+            onDismissRequest = { showReseedDialog = false },
+            title = {
+                Text(
+                    text = "مسح كل البيانات؟",
+                    fontFamily = CairoFontFamily,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "هيتم مسح كل الأدوية والمواعيد والسجل ورقم الطوارئ، وتحميل الأدوية التجريبية مكانها. الرقم السري والإعدادات مش هيتغيروا.",
+                    fontFamily = CairoFontFamily,
+                    fontSize = 16.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReseedDialog = false
+                        viewModel.sendIntent(AdminSettingsIntent.ReseedDemoData)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC62828))
+                ) {
+                    Text("امسح وحمّل التجريبي", fontFamily = CairoFontFamily)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReseedDialog = false }) {
+                    Text("إلغاء", fontFamily = CairoFontFamily)
+                }
+            }
+        )
     }
 
     if (showDisclaimerDialog) {

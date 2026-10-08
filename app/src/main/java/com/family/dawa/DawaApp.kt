@@ -40,9 +40,13 @@ class DawaApp : Application() {
         val alarmScheduler: IAlarmScheduler by inject()
 
         applicationScope.launch {
-            val settings = settingsRepository.getSettings()
-            timeProvider.offsetMillis = settings.debugTimeOffsetMs
-            demoSeeder.seedIfNeeded()
+            // Debug tools only: release builds never shift the clock or add demo medicines,
+            // even if an offset was saved earlier by a debug build.
+            if (BuildConfig.DEBUG) {
+                val settings = settingsRepository.getSettings()
+                timeProvider.offsetMillis = settings.debugTimeOffsetMs
+                demoSeeder.seedIfNeeded()
+            }
             alarmScheduler.resync()
         }
     }
